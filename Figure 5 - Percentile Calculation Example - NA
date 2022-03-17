@@ -50,7 +50,7 @@ SLATITUDE_SOUTH = (-10)
 START_DATE = ("1983-01-01")
 END_DATE = ("1999-12-31")
 
-heat = "C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\CHIRTS DAILY\\CHIRTS_TMAX_AFRICA.nc"
+heat = ""
 data = Dataset(heat)
 
 print(data.variables.keys())
@@ -59,7 +59,7 @@ temp = data.variables['Tmax'][ :, :, :] # relates to time
 lats = data.variables['latitude'][:] # it means what timestep, months in this case and then long and lat
 lons = data.variables['longitude'][:]
 
-CHIRTS_DATA = xr.open_dataset("C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\CHIRTS DAILY\\CHIRTS_TMAX_AFRICA.nc")
+CHIRTS_DATA = xr.open_dataset("")
 
 CHIRTS_DATA_LONG = CHIRTS_DATA.assign_coords({"longitude":(((CHIRTS_DATA.longitude+120)%300)-120)})
 CHIRTS_DATA_LONG_LAT = CHIRTS_DATA_LONG.assign_coords({"latitude":(((CHIRTS_DATA_LONG.latitude+140)%320)-140)})
