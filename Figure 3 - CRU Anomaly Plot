@@ -34,7 +34,7 @@ cnt = 0
 Variable = ('Mean surface temperature')
 
 #OVERALL FIGURE SAVE
-path2 = os.path.join("C:\\Users\\kn21628\OneDrive - University of Bristol\\Documents\\Research\\SUPERVISOR_MEETINGS\\PhD Interview", 'CRU_SEASONS_1983_1999_1983_2016_Anomaly' + "." + filetype)
+path2 = os.path.join("", 'CRU_SEASONS_1983_1999_1983_2016_Anomaly' + "." + filetype)
 
 #DEFINE TIME PERIOD HERE
 
@@ -88,7 +88,7 @@ LATITUDE_SOUTH = (40)
 #SUBPLOT FILETYPE
 filetype = "_map.pdf"
 
-heat = "C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\Cru temp\\Working version\\cru_ts4.04.1901.2019.tmx.dat.nc"
+heat = ""
 data = Dataset(heat)
 
 print(data.variables.keys())
@@ -155,7 +155,7 @@ for s in range(len(seasons)):
     p.axes.coastlines(resolution='10m', color='black', linewidth=1) # keep line width a low value
     plt.colorbar(fraction=0.046, pad=0.04)
     plt.title(this_seas, size=14, fontweight = 'bold')
-    #path = os.path.join("C:\\Users\\kn21628\OneDrive - University of Bristol\\Documents\\Research\\SUPERVISOR_MEETINGS\\PhD Interview", "CRU" + this_seas + " 1983_1999_1983_2016_Anomaly" + "." + filetype)
+    #path = os.path.join("", "CRU" + this_seas + " 1983_1999_1983_2016_Anomaly" + "." + filetype)
     #plt.savefig(path) 
 
 # MOVE SUBPLOTS    
