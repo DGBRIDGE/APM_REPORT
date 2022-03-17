@@ -39,19 +39,19 @@ path2 = os.path.join("C:\\Users\\kn21628\OneDrive - University of Bristol\\Docum
 #DEFINE TIME PERIOD HERE
 
 import datetime
-START_DATE = '1901-01-01'
+START_DATE = '1983-01-01'
 datem = datetime.datetime.strptime(START_DATE, "%Y-%m-%d")
 print(datem.year) 
 
-END_DATE = '1930-12-31'
+END_DATE = '1999-12-31'
 datem2 = datetime.datetime.strptime(END_DATE, "%Y-%m-%d")
 print(datem2.year) 
 
-START_DATE_2 = '1989-01-01'
+START_DATE_2 = '1983-01-01'
 #datem = datetime.datetime.strptime(START_DATE, "%Y-%m-%d")
 #print(datem.year) 
 
-END_DATE_2 = '2018-12-31'
+END_DATE_2 = '2016-12-31'
 #datem2 = datetime.datetime.strptime(END_DATE, "%Y-%m-%d")
 #print(datem2.year) 
 
