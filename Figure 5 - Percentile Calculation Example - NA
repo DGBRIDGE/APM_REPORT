@@ -1,0 +1,93 @@
+# PERCETILE OF NR CHIRTS 1983-1999
+
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from netCDF4 import Dataset
+import xarray as xr
+import pandas as pd
+from datetime import datetime
+import cartopy.crs as ccrs
+from cartopy import config
+from cartopy.util import add_cyclic_point
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+from cartopy.mpl.geoaxes import GeoAxes
+
+# AREA SLICING
+LONGITUDE_EAST = (20)
+LONGITUDE_WEST = (55)
+LATITUDE_NORTH = (-10)
+LATITUDE_SOUTH = (15)
+
+# NORTHERN REGION
+NLONGITUDE_EAST = (-20)
+NLONGITUDE_WEST = (40)
+NLATITUDE_NORTH = (15)
+NLATITUDE_SOUTH = (30)
+
+# EASTERN AFRICA 
+
+ELONGITUDE_EAST = (20)
+ELONGITUDE_WEST = (55)
+ELATITUDE_NORTH = (-10)
+ELATITUDE_SOUTH = (15)
+
+# WESTERN AFRICA 
+
+WLONGITUDE_EAST = (-20)
+WLONGITUDE_WEST = (20)
+WLATITUDE_NORTH = (-10)
+WLATITUDE_SOUTH = (15)
+
+# SOUTHERN AFRICA
+
+SLONGITUDE_EAST = (-10)
+SLONGITUDE_WEST = (45)
+SLATITUDE_NORTH = (-40)
+SLATITUDE_SOUTH = (-10)
+
+START_DATE = ("1983-01-01")
+END_DATE = ("1999-12-31")
+
+heat = "C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\CHIRTS DAILY\\CHIRTS_TMAX_AFRICA.nc"
+data = Dataset(heat)
+
+print(data.variables.keys())
+
+temp = data.variables['Tmax'][ :, :, :] # relates to time 
+lats = data.variables['latitude'][:] # it means what timestep, months in this case and then long and lat
+lons = data.variables['longitude'][:]
+
+CHIRTS_DATA = xr.open_dataset("C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\CHIRTS DAILY\\CHIRTS_TMAX_AFRICA.nc")
+
+CHIRTS_DATA_LONG = CHIRTS_DATA.assign_coords({"longitude":(((CHIRTS_DATA.longitude+120)%300)-120)})
+CHIRTS_DATA_LONG_LAT = CHIRTS_DATA_LONG.assign_coords({"latitude":(((CHIRTS_DATA_LONG.latitude+140)%320)-140)})
+
+CHIRTS_DATA_LONG_LAT['time'] = np.sort(CHIRTS_DATA_LONG_LAT['time'].values)
+
+AREA_SLICE = CHIRTS_DATA_LONG_LAT.sel(longitude=slice(NLONGITUDE_EAST, NLONGITUDE_WEST),latitude=slice(NLATITUDE_NORTH, NLATITUDE_SOUTH))
+
+CORRECT_FORMAT = AREA_SLICE.astype(np.float64)
+
+annual_temp = CORRECT_FORMAT.Tmax.groupby('time').mean('time')
+Time_Slice = annual_temp.sel(time=slice(START_DATE,END_DATE))
+AFRICA_TOTAL = Time_Slice.mean(('latitude', 'longitude'))
+
+# 90th PERCENTILE
+
+PERCENTILE_1983_1999_90 = np.nanpercentile(AFRICA_TOTAL, 90)
+
+print(PERCENTILE_1983_1999_90)
+
+#95th Percentile
+
+PERCENTILE_1983_1999_95 = np.nanpercentile(AFRICA_TOTAL, 95)
+
+print(PERCENTILE_1983_1999_95)
+
+#99th Percentile
+
+PERCENTILE_1983_1999_99 = np.nanpercentile(AFRICA_TOTAL, 99)
+
+print(PERCENTILE_1983_1999_99)
