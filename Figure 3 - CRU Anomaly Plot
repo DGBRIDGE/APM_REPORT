@@ -1,0 +1,181 @@
+# CRU LOOP SEASONS - ANOMALY - DOESNT NEED TO ROLL AS AVG OVER TIME PERIOD
+
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from netCDF4 import Dataset
+import xarray as xr
+import pandas as pd
+from datetime import datetime
+import cartopy.crs as ccrs
+from cartopy import config
+from cartopy.util import add_cyclic_point
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+from cartopy.mpl.geoaxes import GeoAxes
+
+filetype = "_map.pdf"
+
+yplots = 2
+xplots = 2
+
+#General Info
+
+figdim=[9,11] # Ordering - Define size of plot on page
+
+fig, ax = plt.subplots(figsize=figdim)
+
+cnt = 0
+
+# SECTION TO CHANGE VARIABLES HERE
+
+# DEFINE VARIABLE ANALYSING
+
+Variable = ('Mean surface temperature')
+
+#OVERALL FIGURE SAVE
+path2 = os.path.join("C:\\Users\\kn21628\OneDrive - University of Bristol\\Documents\\Research\\SUPERVISOR_MEETINGS\\PhD Interview", 'CRU_SEASONS_1983_1999_1983_2016_Anomaly' + "." + filetype)
+
+#DEFINE TIME PERIOD HERE
+
+import datetime
+START_DATE = '1901-01-01'
+datem = datetime.datetime.strptime(START_DATE, "%Y-%m-%d")
+print(datem.year) 
+
+END_DATE = '1930-12-31'
+datem2 = datetime.datetime.strptime(END_DATE, "%Y-%m-%d")
+print(datem2.year) 
+
+START_DATE_2 = '1989-01-01'
+#datem = datetime.datetime.strptime(START_DATE, "%Y-%m-%d")
+#print(datem.year) 
+
+END_DATE_2 = '2018-12-31'
+#datem2 = datetime.datetime.strptime(END_DATE, "%Y-%m-%d")
+#print(datem2.year) 
+
+#AUTODEFINED VARIABLE WITH DATE
+
+Title = Variable,datem.year,datem2.year
+
+# WHAT SEASON
+
+MONTHS = [1,2,3,4,5,6,7,8,9,10,11,12] # CHANGE MONTH VARIABLE HERE: DJF = 12,1,2; MAM = 3,4,5; JJA = 6,7,8; and SON = 9,10,11
+
+DJF = [12,1,2]
+
+MAM = [3,4,5]
+
+JJA = [6,7,8]
+
+SON = [9,10,11]
+
+seasons = [DJF, MAM, JJA, SON]
+
+seas_name = ['DJF', 'MAM', 'JJA', 'SON']
+#seas_name = ['DJF']
+
+proj = ccrs.PlateCarree()
+
+#AREA
+
+LONGITUDE_EAST = (-20)
+LONGITUDE_WEST = (60)
+LATITUDE_NORTH = (-40)
+LATITUDE_SOUTH = (40)
+
+#SUBPLOT FILETYPE
+filetype = "_map.pdf"
+
+heat = "C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\Cru temp\\Working version\\cru_ts4.04.1901.2019.tmx.dat.nc"
+data = Dataset(heat)
+
+print(data.variables.keys())
+
+temp = data.variables['tmx'][ :, :, :] # relates to time 
+lats = data.variables['lat'][:] # it means what timestep, months in this case and then long and lat
+lons = data.variables['lon'][:]
+
+ax = plt.axes(projection=proj)
+
+do = xr.open_dataset("C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\Cru temp\\Working version\\cru_ts4.04.1901.2019.tmx.dat.nc")
+
+#rearrange longitude from 0-360 to -180 to 180
+ds=do.assign_coords({"lon":(((do.lon+180)%360)-180)})
+
+# RUNNING CODE
+
+dg = ds.sel(lon=slice(LONGITUDE_EAST, LONGITUDE_WEST),lat=slice(LATITUDE_NORTH, LATITUDE_SOUTH))
+
+CORRECT_FORMAT = dg.astype(np.float64)
+
+# Loop from here
+
+for s in range(len(seasons)):
+    this_seas=seas_name[s]
+    print ("Running on "+this_seas)
+    # BASELINE
+    ds2 = CORRECT_FORMAT.sel(time=CORRECT_FORMAT.time.dt.month.isin(seasons[s])) 
+    da = ds2.tmx.sel(time=slice(START_DATE, END_DATE))
+    dg_mean = da.mean('time')
+    
+    # ALL YEARS
+    ALL_YEARS = CORRECT_FORMAT.sel(time=CORRECT_FORMAT.time.dt.month.isin(seasons[s]))
+    ALL_YEARS_SLICED = ds2.tmx.sel(time=slice(START_DATE_2, END_DATE_2))
+    ALL_YEARS_MEAN = ALL_YEARS_SLICED.mean('time')
+    
+    # ANOMALY PLOT
+    
+    CRU_ANOMALY = ALL_YEARS_MEAN - dg_mean
+    
+    #dg_mean = da.mean('time', skipna=True)
+    c_levels = np.arange(-2,2.1,0.1)
+    cm = plt.cm.bwr
+    #cm = plt.cm.bwr
+    cnt += 1
+
+    
+    p = plt.subplot(yplots,xplots,cnt,projection=proj) # affects coastline here?? as plots on plt.contourf? I am confusion
+    plt.contourf(CRU_ANOMALY.lon, CRU_ANOMALY.lat, CRU_ANOMALY, c_levels, cmap=cm, extend='both',
+                 transform=proj)
+    
+    # Longitude labels
+    p.axes.set_xticks(np.arange(-20,80,20), crs=ccrs.PlateCarree()) # go 20 past your indexed range
+
+    # Latitude labels
+    p.axes.set_yticks(np.arange(-40,60,20), crs=ccrs.PlateCarree()) # go 20 past your indexed range
+    
+    #Label Format
+    
+    p.axes.tick_params(colors='black', which='both',size=14) #make it bold?
+    
+    #p.axes.gridlines(color='black') # puts gridlines on map
+    
+    p.axes.coastlines(resolution='10m', color='black', linewidth=1) # keep line width a low value
+    plt.colorbar(fraction=0.046, pad=0.04)
+    plt.title(this_seas, size=14, fontweight = 'bold')
+    #path = os.path.join("C:\\Users\\kn21628\OneDrive - University of Bristol\\Documents\\Research\\SUPERVISOR_MEETINGS\\PhD Interview", "CRU" + this_seas + " 1983_1999_1983_2016_Anomaly" + "." + filetype)
+    #plt.savefig(path) 
+
+# MOVE SUBPLOTS    
+plt.subplots_adjust(left=0.4,bottom=0.42,right=0.75,top=1) #(left=None, bottom=None, right=None, top=None, wspace=None, hspace=None)
+
+#TITLE OF FIGURE
+plt.suptitle('CRU AVG Max Surface Temperature Anomaly (°C)',size=18,x=0.53,y=0.95,fontweight = 'bold') #If title stops working, restart kernal # MAKE IT PRINT TITLE VARIABLE!
+
+#COLORBAR POSITION
+#cax = plt.axes([1.02, 0.097, 0.05, 0.77]) #plt.axes((left, bottom, width, height), facecolor='w')
+cax = fig.add_axes([1.02, 0.097, 0.05, 0.77])
+
+#COLORBAR TITLE
+
+plt.colorbar(cax=cax)
+cbar = plt.colorbar(cax=cax)
+cbar.set_label('Temperature (℃)', rotation=270,size=18, fontweight='bold', labelpad=27)
+
+#ticks=[-0.4, 0,2, 0, 0.2, 0.4, 0.6, 0.8. 1.0, 1.2, 1.4, 1.6, 1.8, 2.0. 2.2, 2.4, 2.6, 2.8, 3.0]
+
+plt.tight_layout()
+#plt.savefig(path2)
+plt.show()
