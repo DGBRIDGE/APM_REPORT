@@ -20,7 +20,7 @@ from cartopy.mpl.geoaxes import GeoAxes
 
 filetype = "_map.pdf"
 
-path2 = os.path.join("C:\\Users\\kn21628\OneDrive - University of Bristol\\Documents\\Research\\SUPERVISOR_MEETINGS\\PhD Interview", 'CHIRTS_SEASONS_1983_1999_1983_2016_Anomaly' + "." + filetype)
+path2 = os.path.join("", 'CHIRTS_SEASONS_1983_1999_1983_2016_Anomaly' + "." + filetype)
 
 yplots = 2
 xplots = 2
@@ -66,12 +66,12 @@ END_DATE = ("1999-12-31")
 START_DATE_2 = ("1983-01-01")
 END_DATE_2 = ("2016-12-31")
 
-CHIRTS_HEAT = "C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\CHIRTS DAILY\\CHIRTS_TMAX_AFRICA.nc"
+CHIRTS_HEAT = ""
 CHIRTS_DATA = Dataset(CHIRTS_HEAT)
 
 print(CHIRTS_DATA.variables.keys())
 
-CHIRTS_OPEN_DATASET = xr.open_dataset("C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\CHIRTS DAILY\\CHIRTS_TMAX_AFRICA.nc")
+CHIRTS_OPEN_DATASET = xr.open_dataset("")
 
 #rearrange longitude from 0-360 to -180 to 180
 #ds=ds.assign_coords({"longitude":(((ds.longitude+180)%360)-180)})
@@ -128,7 +128,7 @@ for s in range(len(seasons)):
     p.axes.coastlines(resolution='10m', color='black', linewidth=1)# keep line width a low value
     plt.colorbar(fraction=0.046, pad=0.04)
     plt.title(this_seas, size=14, fontweight = 'bold')
-    path = os.path.join("C:\\Users\\kn21628\OneDrive - University of Bristol\\Documents\\Research\\SUPERVISOR_MEETINGS\\PhD Interview", "CHIRTS" + this_seas + " 1983_1999_1983_2016_Anomaly" + "." + filetype)
+    path = os.path.join("", "CHIRTS" + this_seas + " 1983_1999_1983_2016_Anomaly" + "." + filetype)
     plt.savefig(path) 
     
 # MOVE SUBPLOTS    
