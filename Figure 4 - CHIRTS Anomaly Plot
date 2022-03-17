@@ -1,0 +1,156 @@
+# CHIRTS LOOP SEASON - ANOMALY
+
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from netCDF4 import Dataset
+import xarray as xr
+import pandas as pd
+from datetime import datetime
+import cartopy.crs as ccrs
+from cartopy import config
+from cartopy.util import add_cyclic_point
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+from cartopy.mpl.geoaxes import GeoAxes
+
+#General Info
+
+#OVERALL FIGURE SAVE
+
+filetype = "_map.pdf"
+
+path2 = os.path.join("C:\\Users\\kn21628\OneDrive - University of Bristol\\Documents\\Research\\SUPERVISOR_MEETINGS\\PhD Interview", 'CHIRTS_SEASONS_1983_1999_1983_2016_Anomaly' + "." + filetype)
+
+yplots = 2
+xplots = 2
+
+figdim=[9,11] # Ordering - Define size of plot on page
+
+fig, ax = plt.subplots(figsize=figdim)
+
+cnt = 0
+
+proj = ccrs.PlateCarree()
+
+ax = plt.axes(projection=proj)
+
+#VARIABLES
+
+# LONG & LAT
+
+LONGITUDE_EAST = (-20)
+LONGITUDE_WEST = (60)
+LATITUDE_NORTH = (-40)
+LATITUDE_SOUTH = (40)
+
+# WHAT SEASON
+
+MONTHS = [1,2,3,4,5,6,7,8,9,10,11,12] # CHANGE MONTH VARIABLE HERE: DJF = 12,1,2; MAM = 3,4,5; JJA = 6,7,8; and SON = 9,10,11
+
+DJF = [12,1,2]
+
+MAM = [3,4,5]
+
+JJA = [6,7,8]
+
+SON = [9,10,11]
+
+seasons = [DJF, MAM, JJA, SON]
+
+seas_name = ['DJF', 'MAM', 'JJA', 'SON']
+
+START_DATE = ("1983-01-01")
+END_DATE = ("1999-12-31")
+
+START_DATE_2 = ("1983-01-01")
+END_DATE_2 = ("2016-12-31")
+
+CHIRTS_HEAT = "C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\CHIRTS DAILY\\CHIRTS_TMAX_AFRICA.nc"
+CHIRTS_DATA = Dataset(CHIRTS_HEAT)
+
+print(CHIRTS_DATA.variables.keys())
+
+CHIRTS_OPEN_DATASET = xr.open_dataset("C:\\Users\\kn21628\\OneDrive - University of Bristol\\Documents\\Research\\Advanced Computing\\Data\\CHIRTS DAILY\\CHIRTS_TMAX_AFRICA.nc")
+
+#rearrange longitude from 0-360 to -180 to 180
+#ds=ds.assign_coords({"longitude":(((ds.longitude+180)%360)-180)})
+
+CHIRTS_AREA_SLICE = CHIRTS_OPEN_DATASET.sel(longitude=slice(LONGITUDE_EAST, LONGITUDE_WEST),latitude=slice(LATITUDE_NORTH, LATITUDE_SOUTH))
+
+CHIRTS_AREA_SLICE['time'] = np.sort(CHIRTS_AREA_SLICE['time'].values)
+
+CORRECT_FORMAT = CHIRTS_AREA_SLICE.astype(np.float64)
+
+#TIME_SLICE = CHIRTS_AREA_SLICE.sel(time=slice(START_DATE, END_DATE))
+
+# Loop from here
+
+for s in range(len(seasons)):
+    this_seas=seas_name[s]
+    print ("Running on "+this_seas)
+    
+    # BASELINE
+    
+    CHIRTS_SEASON_SELECTION = CORRECT_FORMAT.sel(time=CORRECT_FORMAT.time.dt.month.isin(seasons[s]))  
+    CHIRTS_TIME_SLICE = CHIRTS_SEASON_SELECTION.Tmax.sel(time=slice(START_DATE, END_DATE))
+    CHIRTS_MEAN_PLOT = CHIRTS_TIME_SLICE.mean('time')
+    
+    # ALL YEARS
+    
+    CHIRTS_SEASON_SELECTION_ALL_YEARS = CORRECT_FORMAT.sel(time=CORRECT_FORMAT.time.dt.month.isin(seasons[s]))  
+    CHIRTS_TIME_SLICE_ALL_YEARS = CHIRTS_SEASON_SELECTION_ALL_YEARS.Tmax.sel(time=slice(START_DATE_2, END_DATE_2))
+    CHIRTS_MEAN_PLOT_ALL_YEARS = CHIRTS_TIME_SLICE_ALL_YEARS.mean('time')
+    
+    # ANOMALY TO PLOT
+    
+    CHIRTS_ANOMALY_PLOT = CHIRTS_MEAN_PLOT_ALL_YEARS - CHIRTS_MEAN_PLOT
+    
+    #dg_mean = da.mean('time', skipna=True)
+    c_levels = np.arange(-2,2.1,0.1)
+    cm = plt.cm.bwr
+    cnt += 1
+    
+    p = plt.subplot(yplots,xplots,cnt,projection=proj) # affects coastline here?? as plots on plt.contourf? I am confusion
+    plt.contourf(CHIRTS_ANOMALY_PLOT.longitude, CHIRTS_ANOMALY_PLOT.latitude, CHIRTS_ANOMALY_PLOT, c_levels, cmap=cm, extend='both',
+                 transform=proj)
+    
+    # Longitude labels
+    p.axes.set_xticks(np.arange(-20,80,20), crs=ccrs.PlateCarree()) # go 20 past your indexed range
+
+    # Latitude labels
+    p.axes.set_yticks(np.arange(-40,60,20), crs=ccrs.PlateCarree()) # go 20 past your indexed range
+    
+    #Label Format
+    
+    p.axes.tick_params(colors='black', which='both',size=14) #make it bold?
+    
+    p.axes.coastlines(resolution='10m', color='black', linewidth=1)# keep line width a low value
+    plt.colorbar(fraction=0.046, pad=0.04)
+    plt.title(this_seas, size=14, fontweight = 'bold')
+    path = os.path.join("C:\\Users\\kn21628\OneDrive - University of Bristol\\Documents\\Research\\SUPERVISOR_MEETINGS\\PhD Interview", "CHIRTS" + this_seas + " 1983_1999_1983_2016_Anomaly" + "." + filetype)
+    plt.savefig(path) 
+    
+# MOVE SUBPLOTS    
+plt.subplots_adjust(left=0.4,bottom=0.42,right=0.75,top=1) #(left=None, bottom=None, right=None, top=None, wspace=None, hspace=None)
+
+#TITLE OF FIGURE
+Title = "CHIRTS AVG Max Surface Temperature Anomaly"
+plt.suptitle(Title,size=18,x=0.53,y=0.95,fontweight = 'bold') #If title stops working, restart kernal # MAKE IT PRINT TITLE VARIABLE!
+
+#COLORBAR POSITION
+#cax = plt.axes([1.02, 0.097, 0.05, 0.77]) #plt.axes((left, bottom, width, height), facecolor='w')
+pos = fig.add_axes([1.02, 0.097, 0.05, 0.77])
+#COLORBAR TITLE
+
+plt.colorbar(cax=pos)
+cbar = plt.colorbar(cax=pos)
+cbar.set_label('Temperature (℃)', rotation=270,size=18, fontweight='bold', labelpad=27)
+
+plt.tight_layout()
+plt.savefig(path2)
+plt.show()
+
+ax.coastlines()
+
+plt.show()
