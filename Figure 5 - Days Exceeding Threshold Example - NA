@@ -1,0 +1,171 @@
+# Loop of Years - COUNTING DAYS EXCEEDING THRESHOLD - NR99
+
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from netCDF4 import Dataset
+import xarray as xr
+import pandas as pd
+from datetime import datetime
+import cartopy.crs as ccrs
+from cartopy import config
+from cartopy.util import add_cyclic_point
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+from cartopy.mpl.geoaxes import GeoAxes
+import itertools
+import pymannkendall as mk
+
+# AREA SLICING
+LONGITUDE_EAST = (-20)
+LONGITUDE_WEST = (60)
+LATITUDE_NORTH = (-40)
+LATITUDE_SOUTH = (40)
+
+# NORTHERN REGION
+NLONGITUDE_EAST = (-20)
+NLONGITUDE_WEST = (40)
+NLATITUDE_NORTH = (15)
+NLATITUDE_SOUTH = (30)
+
+# EASTERN AFRICA 
+
+ELONGITUDE_EAST = (20)
+ELONGITUDE_WEST = (55)
+ELATITUDE_NORTH = (-10)
+ELATITUDE_SOUTH = (15)
+
+# WESTERN AFRICA 
+
+WLONGITUDE_EAST = (-20)
+WLONGITUDE_WEST = (20)
+WLATITUDE_NORTH = (-10)
+WLATITUDE_SOUTH = (15)
+
+# SOUTHERN AFRICA
+
+SLONGITUDE_EAST = (-10)
+SLONGITUDE_WEST = (45)
+SLATITUDE_NORTH = (-40)
+SLATITUDE_SOUTH = (-10)
+
+yplots = 2
+xplots = 2
+
+filetype = "_Time_Series.pdf"
+
+#General Info
+
+figdim=[9,11] # Ordering - Define size of plot on page
+
+fig, ax = plt.subplots(figsize=figdim)
+
+cnt = 0
+
+#years = [*range(1983,1985,1)]
+#print(years)
+
+years = ('1983', '1984', '1985', '1986', '1987', '1988', '1989', '1990', '1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016')
+
+#years = [range(1983,1987,1)]
+
+yplots = 1
+xplots = 1
+
+heat = ""
+data = Dataset(heat)
+
+print(data.variables.keys())
+
+ds = xr.open_dataset("")
+
+ds['time'] = np.sort(ds['time'].values)
+
+temp = data.variables['Tmax'][ :, :, :] # relates to time 
+lats = data.variables['latitude'][:] # it means what timestep, months in this case and then long and lat
+lons = data.variables['longitude'][:]
+
+#rearrange longitude from 0-360 to -180 to 180
+#ds=ds.assign_coords({"longitude":(((ds.longitude+120)%300)-120)})
+#ds2=ds.assign_coords({"latitude":(((ds.latitude+140)%320)-140)})
+
+# RUNNING CODE
+NR = ds.sel(longitude=slice(NLONGITUDE_EAST, NLONGITUDE_WEST),latitude=slice(NLATITUDE_NORTH, NLATITUDE_SOUTH))
+
+#this_year=years[s]
+#print("Running on "+'this_year')
+
+NR_trial_dict = {0: 0}
+
+# NORTHERN REGION
+
+for s in range(len(years)):
+    this_year=years[s]
+    print("Running on "+this_year)
+    annual_temp = NR.Tmax.groupby('time').mean('time')
+    Time_Slice = annual_temp.sel(time=slice(years[s],years[s]))
+    AFRICA_TOTAL = Time_Slice.mean(('latitude', 'longitude'))
+    days = AFRICA_TOTAL[AFRICA_TOTAL > 41.85468588511992].count()
+    days_calculated = int(days)
+    
+    cnt += 1
+    YEAR_CALCULATED = Time_Slice['time'].dt.year.mean()
+    YEAR_COMPLETED = int(YEAR_CALCULATED)
+    #trial_dict = {YEAR_COMPLETED: days_calculated}
+    #print(trial_dict)
+    updated_dict = {YEAR_COMPLETED: days_calculated}
+    NR_trial_dict.update(updated_dict)
+    #print(trial_dict)
+
+del NR_trial_dict[0]
+
+NR_dates = list(NR_trial_dict.keys())           
+threshold_exceed_NR = list(NR_trial_dict.values()) 
+
+print("NR DONE")
+
+# MANN KENDALL TEST
+
+kendall_chirts_NR_90 = list(NR_trial_dict.values())
+
+print(kendall_chirts_NR_90)
+
+Kendall_Test_NR_90 = mk.original_test(kendall_chirts_NR_90)
+
+print(Kendall_Test_NR_90)
+
+#plt.annotate(Kendall_Test_WR_90.p, xy=(0.05, 0.95), xycoords='axes fraction')
+
+#PLOTTING
+
+plt.plot(NR_dates,threshold_exceed_NR, color="k")
+
+# TITLE
+
+Title = ("CHIRTS - " +"days exceeding 99th percentile - NR")
+
+plt.suptitle(Title,size=14,x=0.53,y=0.95,fontweight = 'bold')
+
+#LEGEND & labels
+
+plt.legend(loc="upper center",fontsize=10,bbox_to_anchor=(0.5, -0.15),ncol=3)
+
+plt.xlabel('Year')
+
+plt.ylabel('Number of days above 99th percentile')
+
+x = [*range(1983,2017,3)]
+
+plt.xticks(x, rotation='horizontal')
+
+y = [0, 10, 20, 30, 40]
+
+plt.yticks(y)
+
+plt.ylim(0,40)
+
+#SAVE THE FIGURE
+
+#path = os.path.join("", 'CHIRTS_1983_2016_99THRESHOLD_NR'+"." + filetype)
+plt.savefig(path,bbox_inches='tight')
+plt.show()
